@@ -112,6 +112,7 @@ func Load(hierarchy Hierarchy, path Path, opts ...InitOpts) (Cgroup, error) {
 	}
 	return &cgroup{
 		path:       path,
+		shared:     config.Shared,
 		subsystems: activeSubsystems,
 	}, nil
 }
@@ -119,6 +120,7 @@ func Load(hierarchy Hierarchy, path Path, opts ...InitOpts) (Cgroup, error) {
 type cgroup struct {
 	path Path
 
+	shared     bool
 	subsystems []Subsystem
 	mu         sync.Mutex
 	err        error
@@ -215,6 +217,10 @@ func (c *cgroup) Delete() error {
 	defer c.mu.Unlock()
 	if c.err != nil {
 		return c.err
+	}
+	// if this is an shared cgroup, do not remove the cgroup from the subsystems
+	if c.shared {
+		return nil
 	}
 	var errs []string
 	for _, s := range c.subsystems {

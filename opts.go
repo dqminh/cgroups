@@ -36,6 +36,9 @@ type InitOpts func(*InitConfig) error
 type InitConfig struct {
 	// InitCheck can be used to check initialization errors from the subsystem
 	InitCheck InitCheck
+	// Shared indicates that the cgroup we are loading is shared to us. We can
+	// change its resources and tasks, but we should not delete the cgroup
+	Shared bool
 }
 
 func newInitConfig() *InitConfig {

@@ -267,6 +267,36 @@ func TestLoad(t *testing.T) {
 	}
 }
 
+func TestLoadShared(t *testing.T) {
+	mock, err := newMock()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mock.delete()
+	control, err := New(mock.hierarchy, StaticPath("test"), &specs.LinuxResources{})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if control, err = Load(mock.hierarchy, StaticPath("test"), func(config *InitConfig) error {
+		config.Shared = true
+		return nil
+	}); err != nil {
+		t.Error(err)
+		return
+	}
+	if control == nil {
+		t.Error("control is nil")
+		return
+	}
+	if err := control.Delete(); err != nil {
+		t.Error(err)
+	}
+	if _, err := os.Stat(filepath.Join(mock.root, "memory", "test")); os.IsNotExist(err) {
+		t.Errorf("deleting shared cgroup should not remove the hierrachy: %v", err)
+	}
+}
+
 func TestLoadWithMissingSubsystems(t *testing.T) {
 	mock, err := newMock()
 	if err != nil {
